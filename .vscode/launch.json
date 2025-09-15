@@ -5,22 +5,24 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "type": "java",
+            "name": "App",
+            "request": "launch",
+            "mainClass": "dhs2025.App"
+        },
+        {
             "name": "Debug ANTLR4 grammar",
             "type": "antlr-debug",
             "request": "launch",
-            // Archivo con la gramatica
             "grammar": "${file}",
-            // Archivo a parsear
-            "input": "input/entrada.txt",
-            // Simbolo inicial
-            "startRule": "s",
-            // Muestra Arbol Sintactico
+            "input": "input/programa.txt",
+            "startRule": "programa",
             "printParseTree": true,
             "visualParseTree": true
         },
         {
             "name": "Python: Current File",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal"
