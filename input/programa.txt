@@ -1,6 +1,15 @@
-double xyz;
-int x;
+for (y = 0; y < 10 ; ++y) {
+    x = 0;
+}
 
-x = 0;
-temp = xyz;
-a = 10;
+if (a) {
+    x = a;
+}
+
+while (a) {
+    x = a;
+    y = 10;
+}
+
+while(x)
+    x = x;
