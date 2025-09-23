@@ -24,3 +24,8 @@ a = 10;
 for(int r = 0; i < 10; r++){
     x = x + 1;
 }
+
+int sum (x,y,z){
+    sum = x + y + z;
+    return sum;
+}

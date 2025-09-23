@@ -120,7 +120,9 @@ e : SUMA term e
   |
   ;
 
-term : factor t ;
+term : factor t
+     | factor l
+     ;
 
 t : MULT factor t
   | DIV factor t
@@ -133,6 +135,14 @@ factor : PA exp PC
        | NUMERO
        | ID
        ;
+
+l : EQUAL factor
+  | NEQUAL factor
+  | MENOR factor
+  | MENOREQ factor
+  | MAYOR factor
+  | MAYOREQ factor
+  ;
 
 returnstmt
      : RETURN opal PYC
