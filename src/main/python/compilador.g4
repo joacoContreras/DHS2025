@@ -69,6 +69,7 @@ instruccion : asignacion
             | bloque
             | returnstmt
             | ifor
+            | funcion
             ;
 
 bloque : LLA instrucciones LLC ;
@@ -130,6 +131,14 @@ t : MULT factor t
   |
   ;
 
+funcion : tipo ID PA parametros PC bloque ;
+
+parametros : ID lista_param
+          ;
+
+lista_param : COMA ID lista_param
+            |
+            ;
 
 factor : PA exp PC
        | NUMERO
