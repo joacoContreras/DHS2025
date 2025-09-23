@@ -1,6 +1,6 @@
-for (y = 0; y < 10 ; ++y) {
-    x = 0;
-}
+int w;
+int a, b , c, d, e;
+int x = 0, y, z = x;
 
 if (a) {
     x = a;
@@ -13,3 +13,14 @@ while (a) {
 
 while(x)
     x = x;
+
+double xyz;
+int x;
+
+x = 0;
+temp = xyz;
+a = 10;
+
+for(int r = 0; i < 10; r++){
+    x = x + 1;
+}

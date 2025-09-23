@@ -11,14 +11,9 @@ def main(argv):
     input = FileStream(archivo)
     lexer = compiladorLexer(input)
     stream = CommonTokenStream(lexer)
-    # Print all tokens from the lexer
-    token = lexer.nextToken()
-    while token.type != Token.EOF:
-        print(f'Token: {token.text} (type: {token.type})')
-        token = lexer.nextToken()
-    # parser = compiladoresParser(stream)
-    # tree = parser.s()
-    # print(tree.toStringTree(recog=parser))
+    parser = compiladorParser(stream)
+    tree = parser.programa()
+    print(tree.toStringTree(recog=parser))
 
 if __name__ == '__main__':
     main(sys.argv)

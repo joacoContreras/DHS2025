@@ -6,4 +6,6 @@ b) declaraciones
     1) con asignación simple -> int x = 0;
     2) como lista de variables -> int x, y, z;
     3) como lista con asignaciones -> int x = 0, y, z = x;
-b) while
+b) whileor (y = 0; y < 10; y+1) {
+    x = 0;
+}
