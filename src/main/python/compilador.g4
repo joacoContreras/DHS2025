@@ -21,7 +21,7 @@ MULT : '*' ;
 DIV : '/' ;
 MOD : '%' ;
 
-// Operadores LOGICOS
+// Operadores Logicos
 MENOR : '<' ;
 MAYOR : '>' ;
 MENOREQ : '<=' ;
