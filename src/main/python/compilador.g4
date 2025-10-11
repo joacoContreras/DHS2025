@@ -84,10 +84,7 @@ ielse : ELSE instruccion
 
 ifor : FOR PA (asignacionFor | declaracionFor) PYC (opal) PYC (asignacionFor) PC bloque ;
 
-asignacionFor : ID ASIG opal
-              | ID INCREMENTO
-              | ID DECREMENTO
-          ;
+asignacionFor : ID ( ASIG opal | INCREMENTO | DECREMENTO ) ;
 
 declaracionFor: tipo ID inic listavar ;
 
@@ -121,9 +118,7 @@ e : SUMA term e
   |
   ;
 
-term : factor t
-     | factor l
-     ;
+term : factor ( t | l );
 
 t : MULT factor t
   | DIV factor t

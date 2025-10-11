@@ -26,6 +26,13 @@ class TS:
                 return simbolo
         return None
 
+    def __str__(self):
+        resultado = "Tabla de Simbolos:\n"
+        for i, contexto in enumerate(self.contextos):
+            resultado += f"--- Contexto {i} ---\n"
+            resultado += str(contexto)
+        return resultado
+
 class Contexto:
     def __init__(self):
         self.simbolos = {}
@@ -35,6 +42,11 @@ class Contexto:
 
     def buscarSimbolo(self, nombre):
         return self.simbolos.get(nombre)
+
+    def __str__(self):
+        if not self.simbolos:
+            return "  (vacío)\n"
+        return "".join([f"  {nombre}: {sim.tipoDato}\n" for nombre, sim in self.simbolos.items()])
 
 class ID:
     def __init__(self, nombre, tipoDato):
@@ -76,64 +88,3 @@ class Funcion(ID):
 
     def getListaArgs(self):
         return self.args
-class TS:
-    __instance = None
-    
-    @staticmethod
-    def getInstance():
-        if TS.__instance == None:
-            TS()
-        return TS.__instance
-    
-    def __init__(self):
-        if TS.__instance != None:
-            raise Exception("Esta clase es un singleton!")
-        else:
-            TS.__instance = self
-            self.tabla = {}
-    
-    def agregarContexto(self, id, tipo):
-        if id in self.tabla:
-            raise Exception("Error: variable " + id + " ya declarada")
-        self.tabla[id] = tipo
-    
-    def buscarSimbolo(self, id):
-        if id not in self.tabla:
-            raise Exception("Error: variable " + id + " no declarada")
-        return self.tabla[id]
-    
-    def __str__(self):
-        resultado = "Tabla de Simbolos:\n"
-        for id, tipo in self.tabla.items():
-            resultado += f"{id}: {tipo}\n"
-        return resultado
-    
-class Contexto:
-    def __init__(self):
-        self.simbolos = {}
-    
-    def addSimbolo(self, simbolo):
-        self.simbolos[simbolo.nombre] = simbolo
-        #print(f"Simbolo {simbolo.nombre} agregado al contexto")
-        
-    
-    def buscarSimbolo(self, nombre):
-        return self.simbolos.get(nombre, None)
-
-class ID:
-    def __init__(self, nombre, tipoDato):
-        self.nombre = nombre
-        self.tipoDato = tipoDato
-        self.inicializado = False
-        self.usado = False
-
-class Variable(ID):
-    def __init__(self, nombre, tipoDato, esGlobal = False):
-        super().__init__(nombre, tipoDato)
-        self.esGlobal = esGlobal
-        
-class Function(ID):
-    def __init__(self, nombre, tipo_retorno, parametros):
-        self.nombre = nombre
-        self.tipo_retorno = tipo_retorno
-        self.parametros = parametros
