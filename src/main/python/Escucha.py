@@ -6,19 +6,19 @@ from tablaDeSimbolos import TS, Variable
 
 class Escucha(compiladorListener):
     def __init__(self):
-        self.indent = 1
-        self.declaracion = 0
-        self.profundidad = 0
-        self.numNodos = 0
         self.ts = TS.getInstance()
+        # Guardo el tipo de la declaración actual para usarlo en listavar
+        self.tipo_actual = None
 
     def enterPrograma(self, ctx:compiladorParser.ProgramaContext):
         print("Comienza el Parsing")
 
     def exitPrograma(self, ctx:compiladorParser.ProgramaContext):
         print("Fin del Parsing")
-        print(str(self.ts)) # Imprimir la tabla de símbolos al final
-
+        print("="*20)
+        print(str(self.ts))
+        print("="*20)
+        
     def enterIwhile(self, ctx:compiladorParser.IwhileContext):
         print(" " * self.indent + "Comienza while")
         self.indent += 1
@@ -27,31 +27,33 @@ class Escucha(compiladorListener):
         self.indent -= 1
         print(" " * self.indent + "Fin while")
 
-    # MÉTODO CORREGIDO
     def enterDeclaracion(self, ctx:compiladorParser.DeclaracionContext):
-        # Comprobación de seguridad para evitar el error
-        if ctx.getChildCount() == 0:
-            print("ADVERTENCIA: Se encontró una regla de 'declaracion' vacía.")
-            return
-
-        self.declaracion += 1
-        print("Declaracion Enter -> |" + ctx.getText() + "|")
-        print(" -- Cant. hijos = " + str(ctx.getChildCount()))
-
-        # Extraer tipo y nombre de variable
-        tipo = ctx.getChild(0).getText()  # INT o DOUBLE
-        nombre = ctx.getChild(1).getText()  # ID principal
+        # Extraer el tipo y guardarlo
+        self.tipo_actual = ctx.tipo().getText()
         
-        var = Variable(nombre, tipo)
-        self.ts.addSimbolo(var)
-        print(f"   [TS] Variable agregada: {nombre} ({tipo})")
-
-    # MÉTODO CORREGIDO
+        # Extraer el ID principal de la declaración
+        nombre_var = ctx.ID().getText()
+        
+        # Añadir la variable a la tabla de símbolos
+        variable = Variable(nombre_var, self.tipo_actual)
+        self.ts.addSimbolo(variable)
+        print(f"✔️ Variable declarada: {nombre_var} ({self.tipo_actual})")
+        
     def exitDeclaracion(self, ctx:compiladorParser.DeclaracionContext):
-        print("Declaracion EXIT -> |" + ctx.getText() + "|")
-
+        # Limpiar el tipo actual cuando salimos de la regla de declaración
+        self.tipo_actual = None
+        
     def enterListavar(self, ctx:compiladorParser.ListavarContext):
-        self.profundidad += 1
+        # Esta regla maneja las variables adicionales en una declaración
+        # ej: int x, >>y, z<<;
+        
+        # Iteramos sobre todos los ID que encuentre en la lista
+        for id_node in ctx.ID():
+            nombre_var = id_node.getText()
+            if self.tipo_actual:
+                variable = Variable(nombre_var, self.tipo_actual)
+                self.ts.addSimbolo(variable)
+                print(f"✔️ Variable declarada: {nombre_var} ({self.tipo_actual})")
 
     def exitListavar(self, ctx:compiladorParser.ListavarContext):
         self.profundidad -= 1
