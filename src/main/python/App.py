@@ -5,7 +5,7 @@ from compiladorParser import compiladorParser
 from Escucha import Escucha
 
 def main(argv):
-    archivo = "input/simple.txt"
+    archivo = "/home/joacontreras/Documents/GitHub/DHS2025_JC/input/simple.txt"
     if len(argv) > 1 :
         archivo = argv[1]
     input = FileStream(archivo)
@@ -16,7 +16,7 @@ def main(argv):
     parser.addParseListener(escucha)
     tree = parser.programa()
     print(escucha)
-    # print(tree.toStringTree(recog=parser))
+    print(tree.toStringTree(recog=parser))
 
 if __name__ == '__main__':
     main(sys.argv)
