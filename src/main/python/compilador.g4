@@ -28,7 +28,6 @@ MENOREQ : '<=' ;
 MAYOREQ : '>=' ;
 EQUAL : '==' ;
 NEQUAL : '!=' ;
-
 NUMERO : DIGITO+ ;
 
 // Palabras reservadas
@@ -39,28 +38,14 @@ ELSE : 'else' ;
 FOR : 'for' ;
 WHILE : 'while' ;
 RETURN : 'return' ;
-
 ID : (LETRA | '_')(LETRA | DIGITO | '_')* ;
-
 // Ignorar espacios en blanco
 WS : [ \n\r\t] -> skip ;
 OTRO : . ;
 
-// s : ID     {print("ID ->" + $ID.text + "<--") }         s
-//   | NUMERO {print("NUMERO ->" + $NUMERO.text + "<--") } s
-//   | OTRO   {print("Otro ->" + $OTRO.text + "<--") }     s
-//   | EOF
-//   ;
-
-// s : PA s PC s
-//   |
-//   ;
-
 programa : instrucciones EOF ;
 
-instrucciones : instruccion instrucciones
-              |
-              ;
+instrucciones : instruccion* ;
 
 instruccion : asignacion
             | declaracion
@@ -73,26 +58,18 @@ instruccion : asignacion
             ;
 
 bloque : LLA instrucciones LLC ;
-
 iwhile : WHILE PA opal PC instruccion ;
 
-iif : IF PA opal PC instruccion ielse ;
-
-ielse : ELSE instruccion
-           |
-           ;
+iif : IF PA opal PC instruccion ielse? ; // '?' para opcional
+ielse : ELSE instruccion;
 
 ifor : FOR PA (asignacionFor | declaracionFor) PYC (opal) PYC (asignacionFor) PC bloque ;
-
 asignacionFor : ID ( ASIG opal | INCREMENTO | DECREMENTO ) ;
 
 declaracionFor: tipo ID inic listavar ;
-
 declaracion : tipo ID inic listavar PYC ;
 
-listavar: COMA ID inic listavar
-        |
-        ;
+listavar: (COMA ID inic)* ;
 
 inic : ASIG opal
      |
@@ -102,52 +79,26 @@ tipo : INT
      | DOUBLE
      ;
 
-asignacion : ID ASIG opal PYC
-          | ID (INCREMENTO | DECREMENTO) PYC
-          ;
+asignacion : ID ( ASIG opal | INCREMENTO | DECREMENTO ) PYC ;
+
 INCREMENTO : '++' ;
 DECREMENTO : '--' ;
 
-opal : exp
-     ;
+opal : exp ;
 
-exp : term e ;
+exp : term ( (SUMA | RESTA) term )* ;
 
-e : SUMA term e
-  | RESTA term e
-  |
-  ;
+term : factor ( (MULT | DIV | MOD) factor )* (l)? ;
 
-term : factor ( t | l );
+funcion : tipo ID PA parametros? PC bloque ;
 
-t : MULT factor t
-  | DIV factor t
-  | MOD factor t
-  |
-  ;
-
-funcion : tipo ID PA parametros PC bloque ;
-
-parametros : ID lista_param
-          ;
-
-lista_param : COMA ID lista_param
-            |
-            ;
+parametros : tipo ID (COMA tipo ID)* ;
 
 factor : PA exp PC
        | NUMERO
        | ID
        ;
 
-l : EQUAL factor
-  | NEQUAL factor
-  | MENOR factor
-  | MENOREQ factor
-  | MAYOR factor
-  | MAYOREQ factor
-  ;
+l : (EQUAL | NEQUAL | MENOR | MENOREQ | MAYOR | MAYOREQ) factor ;
 
-returnstmt
-     : RETURN opal PYC
-     ;
+returnstmt : RETURN opal PYC ;
