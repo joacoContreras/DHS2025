@@ -27,6 +27,8 @@ class Escucha(compiladorListener):
     def exitIwhile(self, ctx:compiladorParser.IwhileContext):
         self.indent -= 1
         print("  "*self.indent + "Fin while")
+        ts = TS.getInstance()
+        ts.delContexto()
         
     def enterDeclaracion(self, ctx: compiladorParser.DeclaracionContext):
         ts = TS.getInstance()
@@ -39,6 +41,8 @@ class Escucha(compiladorListener):
     def exitDeclaracion(self, ctx:compiladorParser.DeclaracionContext):
         print("Declaracion EXIT  -> |" + ctx.getText() + "|")
         print("  -- Cant. hijos = " + str(ctx.getChildCount()))
+        ts = TS.getInstance()
+        ts.delContexto()
         
     def enterListavar(self, ctx:compiladorParser.ListavarContext):
         self.profundidad += 1
