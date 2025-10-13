@@ -1,8 +1,7 @@
 class TS:
     _instance = None
     def __init__(self):
-        self.contextos = [Contexto()]  # contexto global
-
+        self.contextos = [Contexto()]
     @staticmethod
     def getInstance():
         if TS._instance is None:
@@ -27,10 +26,6 @@ class TS:
         return None
 
     def buscarSimboloEnContextoActual(self, nombre):
-        """
-        Busca un símbolo solo en el contexto (ámbito) actual.
-        Útil para detectar si una variable ya fue declarada en el mismo bloque.
-        """
         return self.contextos[-1].buscarSimbolo(nombre)
 
     def __str__(self):
