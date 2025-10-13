@@ -26,6 +26,13 @@ class TS:
                 return simbolo
         return None
 
+    def buscarSimboloEnContextoActual(self, nombre):
+        """
+        Busca un símbolo solo en el contexto (ámbito) actual.
+        Útil para detectar si una variable ya fue declarada en el mismo bloque.
+        """
+        return self.contextos[-1].buscarSimbolo(nombre)
+
     def __str__(self):
         resultado = "Tabla de Simbolos:\n"
         for i, contexto in enumerate(self.contextos):
