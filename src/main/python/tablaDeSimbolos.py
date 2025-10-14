@@ -29,7 +29,7 @@ class TS:
         return self.contextos[-1].buscarSimbolo(nombre)
 
     def __str__(self):
-        resultado = "Tabla de Simbolos:\n"
+        resultado = "\nTabla de Simbolos:\n"
         for i, contexto in enumerate(self.contextos):
             resultado += f"--- Contexto {i} ---\n"
             resultado += str(contexto)
