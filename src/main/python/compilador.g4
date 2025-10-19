@@ -115,7 +115,9 @@ tipo : INT
 asignacion : ID (ASIG | MASIG | RESIG | MULASIG | DIVASIG | MODASIG) opal PYC
           | ID (INCREMENTO | DECREMENTO) PYC
           ;
+
 INCREMENTO : '++' ;
+
 DECREMENTO : '--' ;
 
 opal : exp
@@ -136,6 +138,14 @@ t : MULT factor t
   | DIV factor t
   | MOD factor t
   |
+  ;
+
+l : MENOR factor l
+  | MAYOR factor l
+  | MENOREQ factor l
+  | MAYOREQ factor l
+  | EQUAL factor l
+  | NEQUAL factor l
   ;
 
 funcion : tipo ID PA parametros PC bloque ;
