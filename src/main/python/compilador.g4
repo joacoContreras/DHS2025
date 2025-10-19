@@ -21,13 +21,21 @@ MULT : '*' ;
 DIV : '/' ;
 MOD : '%' ;
 
-// Operadores Logicos
+// Operadores compuestos de asignación
+MASIG : '+=' ;
+RESIG : '-=' ;
+MULASIG : '*=' ;
+DIVASIG : '/=' ;
+MODASIG : '%=' ;
+
+// Operadores LOGICOS
 MENOR : '<' ;
 MAYOR : '>' ;
 MENOREQ : '<=' ;
 MAYOREQ : '>=' ;
 EQUAL : '==' ;
 NEQUAL : '!=' ;
+
 NUMERO : DIGITO+ ;
 
 // Palabras reservadas
@@ -38,14 +46,28 @@ ELSE : 'else' ;
 FOR : 'for' ;
 WHILE : 'while' ;
 RETURN : 'return' ;
+
 ID : (LETRA | '_')(LETRA | DIGITO | '_')* ;
+
 // Ignorar espacios en blanco
 WS : [ \n\r\t] -> skip ;
 OTRO : . ;
 
+// s : ID     {print("ID ->" + $ID.text + "<--") }         s
+//   | NUMERO {print("NUMERO ->" + $NUMERO.text + "<--") } s
+//   | OTRO   {print("Otro ->" + $OTRO.text + "<--") }     s
+//   | EOF
+//   ;
+
+// s : PA s PC s
+//   |
+//   ;
+
 programa : instrucciones EOF ;
 
-instrucciones : instruccion* ;
+instrucciones : instruccion instrucciones
+              |
+              ;
 
 instruccion : asignacion
             | declaracion
@@ -58,18 +80,29 @@ instruccion : asignacion
             ;
 
 bloque : LLA instrucciones LLC ;
+
 iwhile : WHILE PA opal PC instruccion ;
 
-iif : IF PA opal PC instruccion ielse? ; // '?' para opcional
-ielse : ELSE instruccion;
+iif : IF PA opal PC instruccion ielse ;
+
+ielse : ELSE instruccion
+           |
+           ;
 
 ifor : FOR PA (asignacionFor | declaracionFor) PYC (opal) PYC (asignacionFor) PC bloque ;
-asignacionFor : ID ( ASIG opal | INCREMENTO | DECREMENTO ) ;
+
+asignacionFor : ID (ASIG | MASIG | RESIG | MULASIG | DIVASIG | MODASIG) opal
+              | ID INCREMENTO
+              | ID DECREMENTO
+          ;
 
 declaracionFor: tipo ID inic listavar ;
+
 declaracion : tipo ID inic listavar PYC ;
 
-listavar: (COMA ID inic)* ;
+listavar: COMA ID inic listavar
+        |
+        ;
 
 inic : ASIG opal
      |
@@ -79,26 +112,50 @@ tipo : INT
      | DOUBLE
      ;
 
-asignacion : ID ( ASIG opal | INCREMENTO | DECREMENTO ) PYC ;
-
+asignacion : ID (ASIG | MASIG | RESIG | MULASIG | DIVASIG | MODASIG) opal PYC
+          | ID (INCREMENTO | DECREMENTO) PYC
+          ;
 INCREMENTO : '++' ;
 DECREMENTO : '--' ;
 
-opal : exp ;
+opal : exp
+     ;
 
-exp : term ( (SUMA | RESTA) term )* ;
+exp : term e ;
 
-term : factor ( (MULT | DIV | MOD) factor )* (l)? ;
+e : SUMA term e
+  | RESTA term e
+  |
+  ;
 
-funcion : tipo ID PA parametros? PC bloque ;
+term : factor t
+     | factor l
+     ;
 
-parametros : tipo ID (COMA tipo ID)* ;
+t : MULT factor t
+  | DIV factor t
+  | MOD factor t
+  |
+  ;
+
+funcion : tipo ID PA parametros PC bloque ;
+
+parametros : ID lista_param
+          ;
+
+lista_param : COMA ID lista_param
+            |
+            ;
 
 factor : PA exp PC
        | NUMERO
        | ID
-       ;
+       | ID PA argumentos? PC ;
 
-l : (EQUAL | NEQUAL | MENOR | MENOREQ | MAYOR | MAYOREQ) factor ;
+argumentos : opal (COMA opal)* ;
 
-returnstmt : RETURN opal PYC ;
+// Prototipo (declaración sin cuerpo)
+prototipo : tipo ID PA parametrosTipados? PC PYC ;
+
+// Parámetros tipados
+parametrosTipados : tipo ID (COMA tipo ID)* ;
