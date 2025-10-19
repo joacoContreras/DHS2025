@@ -1,13 +1,17 @@
 from antlr4 import TerminalNode
 from compiladorParser import compiladorParser
 from compiladorListener import compiladorListener
-from tablaDeSimbolos import TS, Variable
+from tablaDeSimbolos import TS, Variable, Funcion
 
 class Escucha(compiladorListener):
     indent = 1
     declaracion = 0
     profundidad = 0
     numNodos = 0
+    numFunciones = 0
+    numWhiles = 0
+    numFors = 0
+    numIfs = 0
     
     tipo_actual = None
 
@@ -21,63 +25,140 @@ class Escucha(compiladorListener):
         print(ts)
         
     def enterIwhile(self, ctx:compiladorParser.IwhileContext):
-        print("  "*self.indent + "Comienza while")
+        self.numWhiles += 1
+        print("  "*self.indent + "╔═ WHILE ENTER")
         self.indent += 1
         ts = TS.getInstance()
         ts.addContexto()
 
     def exitIwhile(self, ctx:compiladorParser.IwhileContext):
         self.indent -= 1
-        print("  "*self.indent + "Fin while")
+        print("  "*self.indent + "╚═ WHILE EXIT")
         ts = TS.getInstance()
         ts.delContexto()
         
     def enterDeclaracion(self, ctx: compiladorParser.DeclaracionContext):
-        # --- ¡PROTECCIÓN AÑADIDA! ---
-        # Solo procesamos si la declaración no está vacía.
-        if ctx.getChildCount() > 0:
-            ts = TS.getInstance()
-            ts.addContexto()
-            self.declaracion += 1
-            print("Declaracion ENTER -> | " + ctx.getText() + "|")
-            
-            # El tipo de dato es el PRIMER hijo (índice 0).
-            self.tipo_actual = ctx.getChild(0).getText()
-            print("  -- Tipo de dato guardado: " + self.tipo_actual)
+        self.declaracion += 1
+        print("Declaracion ENTER -> |" + ctx.getText() + "|")
         
     def exitDeclaracion(self, ctx:compiladorParser.DeclaracionContext):
-        # --- ¡PROTECCIÓN AÑADIDA! ---
-        # Solo procesamos si la declaración no estaba vacía.
-        if ctx.getChildCount() > 0:
-            print("Declaracion EXIT  -> |" + ctx.getText() + "|")
+        print("Declaracion EXIT  -> |" + ctx.getText() + "|")
+        
+        if ctx.getChildCount() >= 3:
+            # Estructura: tipo ID inic listavar PYC
             ts = TS.getInstance()
-            ts.delContexto()
+            
+            # Obtener el tipo (primer hijo)
+            tipo = ctx.getChild(0).getText()
+            print(f"  -- Tipo detectado: {tipo}")
+            
+            # Obtener el primer ID (segundo hijo)
+            primer_id = ctx.getChild(1).getText()
+            var = Variable(primer_id, tipo)
+            ts.addSimbolo(var)
+            print(f"  -> Variable '{primer_id}' de tipo '{tipo}' agregada")
+            
+            # Procesar listavar para variables adicionales
+            # listavar está en la posición 3
+            self.tipo_actual = tipo
+            self.procesar_listavar(ctx.getChild(3), ts)
             self.tipo_actual = None
+    
+    def procesar_listavar(self, ctx, ts):
+        """Procesa recursivamente los nodos listavar para extraer variables adicionales"""
+        if ctx is None or ctx.getChildCount() < 2:
+            return
+        
+        # Estructura de listavar: COMA ID inic listavar
+        if ctx.getChildCount() >= 2:
+            nombre_var = ctx.getChild(1).getText()
+            if nombre_var and nombre_var != ',':
+                var = Variable(nombre_var, self.tipo_actual)
+                ts.addSimbolo(var)
+                print(f"  -> Variable '{nombre_var}' de tipo '{self.tipo_actual}' agregada")
+            
+            # Procesar el siguiente listavar recursivamente (posición 3)
+            if ctx.getChildCount() >= 4:
+                self.procesar_listavar(ctx.getChild(3), ts)
         
     def enterListavar(self, ctx:compiladorParser.ListavarContext):
         self.profundidad += 1
 
     def exitListavar(self, ctx:compiladorParser.ListavarContext):
         self.profundidad -= 1
-        
-        # --- ¡PROTECCIÓN AÑADIDA! ---
-        # Nos aseguramos de que listavar no esté vacía antes de procesar.
         if ctx.getChildCount() > 0:
             print("  -- ListaVar(%d) Cant. hijos  = %d" % (self.profundidad + 1, ctx.getChildCount()))
+    
+    # ============== RECONOCIMIENTO DE FUNCIONES ==============
+    def enterFuncion(self, ctx:compiladorParser.FuncionContext):
+        self.numFunciones += 1
+        print("  " * self.indent + "╔═ FUNCION ENTER")
+        self.indent += 1
+        ts = TS.getInstance()
+        ts.addContexto()  # Nuevo contexto para el scope de la función
+    
+    def exitFuncion(self, ctx:compiladorParser.FuncionContext):
+        # Estructura: tipo ID PA parametros PC bloque
+        if ctx.getChildCount() >= 6:
+            tipo_retorno = ctx.getChild(0).getText()
+            nombre_funcion = ctx.getChild(1).getText()
             
-            # El nombre de la variable (ID) es el PRIMER hijo (índice 0).
-            nombre_variable = ctx.getChild(0).getText()
+            # Extraer parámetros (esto se puede mejorar)
+            params = []
+            parametros_ctx = ctx.getChild(3)
+            if parametros_ctx and parametros_ctx.getChildCount() > 0:
+                # Simplificado: solo muestra que tiene parámetros
+                params.append("...")
             
             ts = TS.getInstance()
+            funcion = Funcion(nombre_funcion, tipo_retorno, params)
+            ts.delContexto()  # Salir del scope de la función
+            ts.addSimbolo(funcion)  # Agregar función al contexto externo
             
-            if self.tipo_actual:
-                simbolo = Variable(nombre_variable, self.tipo_actual)
-                ts.addSimbolo(simbolo)
-                print("      -> Símbolo '{%s: %s}' agregado al contexto actual." % (nombre_variable, self.tipo_actual))
+            self.indent -= 1
+            print("  " * self.indent + f"╚═ FUNCION EXIT: {nombre_funcion}() -> {tipo_retorno}")
+        else:
+            self.indent -= 1
+            print("  " * self.indent + "╚═ FUNCION EXIT (incompleta)")
+    
+    # ============== RECONOCIMIENTO DE IF ==============
+    def enterIif(self, ctx:compiladorParser.IifContext):
+        self.numIfs += 1
+        print("  " * self.indent + "╔═ IF ENTER")
+        self.indent += 1
+        ts = TS.getInstance()
+        ts.addContexto()  # Nuevo contexto para el scope del if
+    
+    def exitIif(self, ctx:compiladorParser.IifContext):
+        self.indent -= 1
+        ts = TS.getInstance()
+        ts.delContexto()
+        print("  " * self.indent + "╚═ IF EXIT")
+    
+    # ============== RECONOCIMIENTO DE FOR ==============
+    def enterIfor(self, ctx:compiladorParser.IforContext):
+        self.numFors += 1
+        print("  " * self.indent + "╔═ FOR ENTER")
+        self.indent += 1
+        ts = TS.getInstance()
+        ts.addContexto()  # Nuevo contexto para el scope del for
+    
+    def exitIfor(self, ctx:compiladorParser.IforContext):
+        self.indent -= 1
+        ts = TS.getInstance()
+        ts.delContexto()
+        print("  " * self.indent + "╚═ FOR EXIT")
+        
+    # ============== RECONOCIMIENTO DE WHILE (ya existente, mejorado) ==============
         
     def enterEveryRule(self, ctx):
         self.numNodos += 1
 
     def __str__(self):
-        return "Se hicieron " + str(self.declaracion) + " declaraciones\n" + \
-               "Se visitaron " + str(self.numNodos) + " nodos"
+        resultado = f"Se hicieron {self.declaracion} declaraciones\n"
+        resultado += f"Se reconocieron {self.numFunciones} funciones\n"
+        resultado += f"Se reconocieron {self.numWhiles} bucles while\n"
+        resultado += f"Se reconocieron {self.numFors} bucles for\n"
+        resultado += f"Se reconocieron {self.numIfs} estructuras if\n"
+        resultado += f"Se visitaron {self.numNodos} nodos"
+        return resultado

@@ -73,12 +73,10 @@ instruccion : asignacion
             | declaracion
             | iif
             | iwhile
-            | bloque
-            | returnstmt
             | ifor
             | funcion
             ;
-
+            
 bloque : LLA instrucciones LLC ;
 
 iwhile : WHILE PA opal PC instruccion ;
