@@ -16,7 +16,11 @@ class TS:
             self.contextos.pop()
 
     def addSimbolo(self, simbolo):
+        # Verificar si ya existe en el contexto ACTUAL (no en contextos padres)
+        if simbolo.nombre in self.contextos[-1].simbolos:
+            return False  # Ya existe (doble declaración)
         self.contextos[-1].addSimbolo(simbolo)
+        return True  # Agregado exitosamente
 
     def buscarSimbolo(self, nombre):
         for contexto in reversed(self.contextos):
@@ -56,6 +60,7 @@ class ID:
         self.tipoDato = tipoDato
         self.inicializado = False
         self.usado = False
+        self.linea = 0  # Nueva: línea donde se declaró
 
     def getNombre(self):
         return self.nombre
@@ -63,8 +68,10 @@ class ID:
     def getTipoDato(self):
         return self.tipoDato
 
-    def setInicializado(self):
+    def setInicializado(self, linea=0):
         self.inicializado = True
+        if linea > 0:
+            self.linea = linea
 
     def getInicializado(self):
         return self.inicializado
@@ -74,6 +81,12 @@ class ID:
 
     def getUsado(self):
         return self.usado
+    
+    def getLinea(self):
+        return self.linea
+    
+    def setLinea(self, linea):
+        self.linea = linea
 
 class Variable(ID):
     def __init__(self, nombre, tipoDato, esGlobal=False):

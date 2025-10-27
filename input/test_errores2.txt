@@ -1,0 +1,17 @@
+int x = 5;
+double y = 3.14;
+int z;
+
+int x = 10;
+
+w = 20;
+
+x = "texto";
+
+int resultado = x + y;
+
+if (z > 0) {
+    int a = 1;
+}
+
+int sinPuntoComa = 42
