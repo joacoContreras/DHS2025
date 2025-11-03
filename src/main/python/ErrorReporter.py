@@ -93,7 +93,7 @@ class ErrorReporter:
         if archivo:
             with open(archivo, 'w') as f:
                 f.write(reporte_texto)
-            print(f"\n📄 Reporte guardado en: {archivo}")
+            print(f"\nReporte guardado en: {archivo}")
         else:
             print(reporte_texto)
     

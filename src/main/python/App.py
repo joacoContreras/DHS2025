@@ -7,11 +7,9 @@ from Escucha import Escucha
 from ErrorReporter import ErrorReporter
 
 class CustomErrorListener(ErrorListener):
-    """Listener personalizado para capturar errores sintácticos de ANTLR"""
     def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
         reporter = ErrorReporter.getInstance()
         
-        # Simplificar el mensaje de error
         mensaje_simple = msg
         if "mismatched input" in msg:
             mensaje_simple = "Token inesperado o falta de un símbolo esperado"
