@@ -2,7 +2,6 @@ from antlr4 import TerminalNode
 from compiladorParser import compiladorParser
 from compiladorListener import compiladorListener
 from tablaDeSimbolos import TS, Variable, Funcion
-from ErrorReporter import ErrorReporter
 
 class Escucha(compiladorListener):
     indent = 1
@@ -15,11 +14,16 @@ class Escucha(compiladorListener):
     numIfs = 0
     
     tipo_actual = None
+    
+    # Listas para almacenar errores
+    errores_sintacticos = []
+    errores_semanticos = []
 
     def enterPrograma(self, ctx: compiladorParser.ProgramaContext):
         print("Comienza el parsing")
-        # Reiniciar el reporter de errores
-        ErrorReporter.getInstance().reset()
+        # Reiniciar errores
+        Escucha.errores_sintacticos = []
+        Escucha.errores_semanticos = []
 
     def exitPrograma(self, ctx: compiladorParser.ProgramaContext):
         print("Fin del Parsing")
@@ -27,30 +31,70 @@ class Escucha(compiladorListener):
         # Verificar variables declaradas pero no usadas
         self.verificarVariablesNoUsadas()
         
-        
-        
         # Generar reporte de errores
-        reporter = ErrorReporter.getInstance()
-        if reporter.tieneErrores():
-            reporter.generarReporte()  # Por consola
-            # reporter.generarReporte("reporte_errores.txt")  # O guardar en archivo
-        else:
-            ts = TS.getInstance()
-            print("\n--- TABLA DE SIMBOLOS FINAL ---")
-            print(ts)
+        self.generarReporte()
     
     def verificarVariablesNoUsadas(self):
         "Verifica si hay variables declaradas pero no usadas"
         ts = TS.getInstance()
-        reporter = ErrorReporter.getInstance()
         
         for contexto in ts.contextos:
             for nombre, simbolo in contexto.simbolos.items():
                 if isinstance(simbolo, Variable) and not simbolo.getUsado():
-                    reporter.reportarErrorSemantico(
+                    self.reportarErrorSemantico(
                         simbolo.getLinea(),
                         f"Variable '{nombre}' declarada pero no usada"
                     )
+    
+    def reportarErrorSintactico(self, linea, mensaje):
+        """Reporta un error sintáctico"""
+        error = f"[SINTÁCTICO] Línea {linea}: {mensaje}"
+        Escucha.errores_sintacticos.append(error)
+        print(f" {error}")
+    
+    def reportarErrorSemantico(self, linea, mensaje):
+        """Reporta un error semántico"""
+        error = f"[SEMÁNTICO] Línea {linea}: {mensaje}"
+        Escucha.errores_semanticos.append(error)
+        print(f" {error}")
+    
+    def tieneErrores(self):
+        """Retorna True si hay errores"""
+        return len(Escucha.errores_sintacticos) > 0 or len(Escucha.errores_semanticos) > 0
+    
+    def generarReporte(self):
+        """Genera un reporte de errores al final"""
+        total_errores = len(Escucha.errores_sintacticos) + len(Escucha.errores_semanticos)
+        
+        if total_errores == 0:
+            # No hay errores, mostrar tabla de símbolos
+            ts = TS.getInstance()
+            print("\n--- TABLA DE SIMBOLOS FINAL ---")
+            print(ts)
+            return
+        
+        # Hay errores, mostrar reporte
+        print("\n" + "=" * 60)
+        print("         REPORTE DE ERRORES")
+        print("=" * 60)
+        print(f"Total de errores: {total_errores}")
+        print(f"  • Errores sintácticos: {len(Escucha.errores_sintacticos)}")
+        print(f"  • Errores semánticos: {len(Escucha.errores_semanticos)}")
+        print("=" * 60)
+        
+        if Escucha.errores_sintacticos:
+            print("\n ERRORES SINTÁCTICOS:")
+            print("-" * 60)
+            for error in Escucha.errores_sintacticos:
+                print(f"  {error}")
+        
+        if Escucha.errores_semanticos:
+            print("\n ERRORES SEMÁNTICOS:")
+            print("-" * 60)
+            for error in Escucha.errores_semanticos:
+                print(f"  {error}")
+        
+        print("\n" + "=" * 60)
         
     def enterIwhile(self, ctx:compiladorParser.IwhileContext):
         self.numWhiles += 1
@@ -75,7 +119,6 @@ class Escucha(compiladorListener):
         if ctx.getChildCount() >= 3:
             # Estructura: tipo ID inic listavar PYC
             ts = TS.getInstance()
-            reporter = ErrorReporter.getInstance()
             
             # Obtener el tipo (primer hijo)
             tipo = ctx.getChild(0).getText()
@@ -96,7 +139,7 @@ class Escucha(compiladorListener):
             
             # Intentar agregar a la tabla (detecta doble declaración)
             if not ts.addSimbolo(var):
-                reporter.reportarErrorSemantico(
+                self.reportarErrorSemantico(
                     linea,
                     f"Variable '{primer_id}' ya fue declarada en este contexto"
                 )
@@ -114,8 +157,6 @@ class Escucha(compiladorListener):
         if ctx is None or ctx.getChildCount() < 2:
             return
         
-        reporter = ErrorReporter.getInstance()
-        
         # Estructura de listavar: COMA ID inic listavar
         if ctx.getChildCount() >= 2:
             nombre_var = ctx.getChild(1).getText()
@@ -131,7 +172,7 @@ class Escucha(compiladorListener):
                 
                 # Intentar agregar (detecta doble declaración)
                 if not ts.addSimbolo(var):
-                    reporter.reportarErrorSemantico(
+                    self.reportarErrorSemantico(
                         self.linea_actual,
                         f"Variable '{nombre_var}' ya fue declarada en este contexto"
                     )
@@ -212,7 +253,6 @@ class Escucha(compiladorListener):
         "Detecta asignaciones y verifica que la variable esté declarada"
         if ctx.getChildCount() >= 3:
             ts = TS.getInstance()
-            reporter = ErrorReporter.getInstance()
             linea = ctx.start.line if ctx.start else 0
             
             # ID está en la posición 0
@@ -223,7 +263,7 @@ class Escucha(compiladorListener):
             
             if simbolo is None:
                 # ERROR: Variable no declarada
-                reporter.reportarErrorSemantico(
+                self.reportarErrorSemantico(
                     linea,
                     f"Variable '{id_nombre}' no ha sido declarada"
                 )
@@ -241,7 +281,7 @@ class Escucha(compiladorListener):
                     if tipo_valor and tipo_valor != simbolo.getTipoDato():
                         # Permitir int -> double (es válido)
                         if not (simbolo.getTipoDato() == "double" and tipo_valor == "int"):
-                            reporter.reportarErrorSemantico(
+                            self.reportarErrorSemantico(
                                 linea,
                                 f"Tipo incompatible: se intenta asignar '{tipo_valor}' a variable de tipo '{simbolo.getTipoDato()}'"
                             )
@@ -280,7 +320,6 @@ class Escucha(compiladorListener):
         "Detecta uso de variables en expresiones"
         # factor puede ser: PA exp PC | NUMERO | ID | ID PA argumentos? PC
         ts = TS.getInstance()
-        reporter = ErrorReporter.getInstance()
         linea = ctx.start.line if ctx.start else 0
         
         # Si el primer hijo es un ID (no es '(' ni número)
@@ -293,13 +332,13 @@ class Escucha(compiladorListener):
                 
                 if simbolo is None:
                     # ERROR: Variable no declarada
-                    reporter.reportarErrorSemantico(
+                    self.reportarErrorSemantico(
                         linea,
                         f"Variable '{primer_hijo}' no ha sido declarada"
                     )
                 elif not simbolo.getInicializado():
                     # ERROR: Variable no inicializada
-                    reporter.reportarErrorSemantico(
+                    self.reportarErrorSemantico(
                         linea,
                         f"Variable '{primer_hijo}' usada sin inicializar"
                     )

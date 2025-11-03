@@ -165,8 +165,8 @@ factor : PA exp PC
 
 argumentos : opal (COMA opal)* ;
 
-// Prototipo (declaración sin cuerpo)
-prototipo : tipo ID PA parametrosTipados? PC PYC ;
+prototipo : tipo ID PA parametrosTipados? PC PYC ; 
+// int f(); | int lo(int arrSize); | int suma(int a, int b);
 
-// Parámetros tipados
 parametrosTipados : tipo ID (COMA tipo ID)* ;
+// parametros tipo: int a, double b

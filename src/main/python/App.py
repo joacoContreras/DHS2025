@@ -4,13 +4,14 @@ from antlr4.error.ErrorListener import ErrorListener
 from compiladorLexer import compiladorLexer
 from compiladorParser import compiladorParser
 from Escucha import Escucha
-from ErrorReporter import ErrorReporter
 
 class CustomErrorListener(ErrorListener):
     """Listener personalizado para capturar errores sintácticos de ANTLR"""
+    def __init__(self, escucha):
+        super().__init__()
+        self.escucha = escucha
+    
     def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
-        reporter = ErrorReporter.getInstance()
-        
         # Simplificar el mensaje de error
         mensaje_simple = msg
         if "mismatched input" in msg:
@@ -29,10 +30,10 @@ class CustomErrorListener(ErrorListener):
         elif "no viable alternative" in msg:
             mensaje_simple = "Sintaxis incorrecta"
         
-        reporter.reportarErrorSintactico(line, mensaje_simple)
+        self.escucha.reportarErrorSintactico(line, mensaje_simple)
 
 def main(argv):
-    archivo = "/home/joacontreras/Documents/GitHub/DHS2025_JC/input/simple.txt"
+    archivo = "/home/joacontreras/Documents/GitHub/DHS2025_JC/input/conErrores.txt"
     if len(argv) > 1 :
         archivo = argv[1]
     
@@ -44,27 +45,27 @@ def main(argv):
     stream = CommonTokenStream(lexer)
     parser = compiladorParser(stream)
     
+    # Crear el listener (escucha)
+    escucha = Escucha()
+    
     # Remover los listeners por defecto y agregar el personalizado
     parser.removeErrorListeners()
-    parser.addErrorListener(CustomErrorListener())
+    parser.addErrorListener(CustomErrorListener(escucha))
     
     # Parsear el programa
     tree = parser.programa()
     
-    # RECORRER EL ÁRBOL con el listener (esto activa enter/exit de TODOS los nodos)
-    escucha = Escucha()
+    # RECORRER EL ÁRBOL con el listener 
     from antlr4.tree.Tree import ParseTreeWalker
     walker = ParseTreeWalker()
     walker.walk(escucha, tree)
     
-    # Imprimir estadísticas
     print("\n" + "="*60)
     print(escucha)
     print("="*60)
     
     # Solo mostrar el árbol si NO hay errores
-    reporter = ErrorReporter.getInstance()
-    if not reporter.tieneErrores():
+    if not escucha.tieneErrores():
         print("\nÁRBOL SINTÁCTICO:")
         print(tree.toStringTree(recog=parser))
 
