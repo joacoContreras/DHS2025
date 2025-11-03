@@ -99,6 +99,7 @@ class Escucha(compiladorListener):
     def enterIwhile(self, ctx:compiladorParser.IwhileContext):
         self.numWhiles += 1
         print("  "*self.indent + " WHILE ENTER")
+        print("  "*self.indent + " WHILE ENTER")
         self.indent += 1
         ts = TS.getInstance()
         ts.addContexto()
@@ -194,6 +195,7 @@ class Escucha(compiladorListener):
     def enterFuncion(self, ctx:compiladorParser.FuncionContext):
         self.numFunciones += 1
         print("  " * self.indent + " FUNCION ENTER")
+        print("  " * self.indent + " FUNCION ENTER")
         self.indent += 1
         ts = TS.getInstance()
         ts.addContexto()
@@ -218,8 +220,10 @@ class Escucha(compiladorListener):
             
             self.indent -= 1
             print("  " * self.indent + f" FUNCION EXIT: {nombre_funcion}() -> {tipo_retorno}")
+            print("  " * self.indent + f" FUNCION EXIT: {nombre_funcion}() -> {tipo_retorno}")
         else:
             self.indent -= 1
+            print("  " * self.indent + " FUNCION EXIT (incompleta)")
             print("  " * self.indent + " FUNCION EXIT (incompleta)")
     
     def enterIif(self, ctx:compiladorParser.IifContext):
@@ -234,9 +238,11 @@ class Escucha(compiladorListener):
         ts = TS.getInstance()
         ts.delContexto()
         print("  " * self.indent + " IF EXIT")
+        print("  " * self.indent + " IF EXIT")
     
     def enterIfor(self, ctx:compiladorParser.IforContext):
         self.numFors += 1
+        print("  " * self.indent + " FOR ENTER")
         print("  " * self.indent + " FOR ENTER")
         self.indent += 1
         ts = TS.getInstance()
