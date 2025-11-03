@@ -54,14 +54,14 @@ class Escucha(compiladorListener):
         
     def enterIwhile(self, ctx:compiladorParser.IwhileContext):
         self.numWhiles += 1
-        print("  "*self.indent + "╔═ WHILE ENTER")
+        print("  "*self.indent + " WHILE ENTER")
         self.indent += 1
         ts = TS.getInstance()
         ts.addContexto()
 
     def exitIwhile(self, ctx:compiladorParser.IwhileContext):
         self.indent -= 1
-        print("  "*self.indent + "╚═ WHILE EXIT")
+        print("  "*self.indent + "WHILE EXIT")
         ts = TS.getInstance()
         ts.delContexto()
         
@@ -110,7 +110,7 @@ class Escucha(compiladorListener):
             self.tipo_actual = None
     
     def procesar_listavar(self, ctx, ts):
-        """Procesa recursivamente los nodos listavar para extraer variables adicionales"""
+        "Procesa recursivamente los nodos listavar para extraer variables adicionales"
         if ctx is None or ctx.getChildCount() < 2:
             return
         
@@ -152,7 +152,7 @@ class Escucha(compiladorListener):
     
     def enterFuncion(self, ctx:compiladorParser.FuncionContext):
         self.numFunciones += 1
-        print("  " * self.indent + "╔═ FUNCION ENTER")
+        print("  " * self.indent + " FUNCION ENTER")
         self.indent += 1
         ts = TS.getInstance()
         ts.addContexto()
@@ -176,14 +176,14 @@ class Escucha(compiladorListener):
             ts.addSimbolo(funcion)
             
             self.indent -= 1
-            print("  " * self.indent + f"╚═ FUNCION EXIT: {nombre_funcion}() -> {tipo_retorno}")
+            print("  " * self.indent + f" FUNCION EXIT: {nombre_funcion}() -> {tipo_retorno}")
         else:
             self.indent -= 1
-            print("  " * self.indent + "╚═ FUNCION EXIT (incompleta)")
+            print("  " * self.indent + " FUNCION EXIT (incompleta)")
     
     def enterIif(self, ctx:compiladorParser.IifContext):
         self.numIfs += 1
-        print("  " * self.indent + "╔═ IF ENTER")
+        print("  " * self.indent + "IF ENTER")
         self.indent += 1
         ts = TS.getInstance()
         ts.addContexto()  # Nuevo contexto para el scope del if
@@ -192,11 +192,11 @@ class Escucha(compiladorListener):
         self.indent -= 1
         ts = TS.getInstance()
         ts.delContexto()
-        print("  " * self.indent + "╚═ IF EXIT")
+        print("  " * self.indent + " IF EXIT")
     
     def enterIfor(self, ctx:compiladorParser.IforContext):
         self.numFors += 1
-        print("  " * self.indent + "╔═ FOR ENTER")
+        print("  " * self.indent + " FOR ENTER")
         self.indent += 1
         ts = TS.getInstance()
         ts.addContexto()  # Nuevo contexto para el scope del for
@@ -205,11 +205,11 @@ class Escucha(compiladorListener):
         self.indent -= 1
         ts = TS.getInstance()
         ts.delContexto()
-        print("  " * self.indent + "╚═ FOR EXIT")
+        print("  " * self.indent + "FOR EXIT")
     
     # ============== DETECCIÓN DE USO DE VARIABLES ==============
     def enterAsignacion(self, ctx:compiladorParser.AsignacionContext):
-        """Detecta asignaciones y verifica que la variable esté declarada"""
+        "Detecta asignaciones y verifica que la variable esté declarada"
         if ctx.getChildCount() >= 3:
             ts = TS.getInstance()
             reporter = ErrorReporter.getInstance()
@@ -228,8 +228,8 @@ class Escucha(compiladorListener):
                     f"Variable '{id_nombre}' no ha sido declarada"
                 )
             else:
-                # Marcar como usada e inicializada (porque se le asigna un valor)
-                simbolo.setUsado()
+                # Marcar como inicializada (porque se le asigna un valor)
+                # NO marcar como usada aquí, porque la asignación no es "uso"
                 simbolo.setInicializado(linea)
                 
                 # Verificar tipos incompatibles (simplificado)

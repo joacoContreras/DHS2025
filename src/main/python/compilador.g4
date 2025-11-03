@@ -75,6 +75,8 @@ instruccion : asignacion
             | iwhile
             | ifor
             | funcion
+            | bloque
+            | opal PYC
             ;
             
 bloque : LLA instrucciones LLC ;
@@ -148,8 +150,9 @@ l : MENOR factor l
 
 funcion : tipo ID PA parametros PC bloque ;
 
-parametros : ID lista_param
-          ;
+parametros : tipo ID lista_param
+           |
+           ;
 
 lista_param : COMA ID lista_param
             |

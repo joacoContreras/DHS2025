@@ -48,9 +48,14 @@ def main(argv):
     parser.removeErrorListeners()
     parser.addErrorListener(CustomErrorListener())
     
-    escucha = Escucha()
-    parser.addParseListener(escucha)
+    # Parsear el programa
     tree = parser.programa()
+    
+    # RECORRER EL ÁRBOL con el listener (esto activa enter/exit de TODOS los nodos)
+    escucha = Escucha()
+    from antlr4.tree.Tree import ParseTreeWalker
+    walker = ParseTreeWalker()
+    walker.walk(escucha, tree)
     
     # Imprimir estadísticas
     print("\n" + "="*60)
